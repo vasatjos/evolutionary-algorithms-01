@@ -83,12 +83,16 @@ def evolutionary_algorithm(fitness):
     return population, logs
 
 
-def solve_one_max():
+if __name__ == "__main__":
     logs = []
+    best = [0] * INDIVIDUAL_LENGTH
 
+    # f = one_max_fitness
+    f = alternating_fitness
     for i in range(EXPERIMENT_COUNT):
         seed(i)
-        _, log = evolutionary_algorithm(one_max_fitness)
+        pop, log = evolutionary_algorithm(f)
+        best = max([*pop, best], key=f)
         logs.append(log)
     evals = []
     best_fit = []
@@ -100,15 +104,17 @@ def solve_one_max():
     best_fit = np.array(best_fit)
     import matplotlib.pyplot as plt
 
-    plt.plot(evals[0, :], np.median(best_fit, axis=0))
+    print(f"Best: {best}, fitness: {f(best)}")
+    title = f"Crossover: {CROSSOVER_PROB}, Mutation: {MUTATION_PROB}, Flip: {round(MUTATION_FLIP_PROB, 4)}"
+    fig = plt.figure(num=title.replace(".", ""))
+    plt.plot(evals[0, :], np.median(best_fit, axis=0), label="Median")
+    plt.plot(evals[0, :], np.max(best_fit, axis=0), label="Best individual")
     plt.fill_between(
         evals[0, :],
         np.percentile(best_fit, q=25, axis=0),
         np.percentile(best_fit, q=75, axis=0),
         alpha=0.2,
     )
+    plt.title(title)
+    plt.legend()
     plt.show()
-
-
-if __name__ == "__main__":
-    solve_one_max()

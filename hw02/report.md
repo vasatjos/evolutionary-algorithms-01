@@ -7,31 +7,63 @@ Fitness jsem použil pouze předem dodanou. Zkoušel jsem exponenciální, ale f
 Záporný objective jsem nepoužíval, jelikož pro roulette wheel selection nemá cenu a pro tournament selection dopadne stejně jako default.
 
 ### Hyperparametry
-Napište, jaké nastavení hyperparametrů jste použili (velikost populace, pravděpodobnost mutace, pravděpodobnost křížení, počet generací).
-Uveďte, zda jste zkoušeli různé hodnoty a jaký to mělo vliv na běh algoritmu.
 
-Zkoušel jsem různé hodnoty pro crossover i pro mutace, také jsem měnil počty jedinců a generací. 
-Počet generací příliš velký vliv neměl (zkoušel jsem zvětšovat), počet jedinců taky zas tak velký ne
-(nejmenší počet jsem zkusil 50).
+Číselné hodnoty hyperparametrů jsem zkoušel ve všelijakých kombinacích, většina
+výsledků mi ale nepřišla příliš zajímavá. K perfektnímu skóre jsem se příliš nepřiblížil...
 
-Zvětšování pravděpodobností mutace (u flip mutace) vedlo k menší stabilitě,
-crossoverem jsem zvětšoval, ale příliš velký vliv to nemělo.
+Věci co konzistentně zlepšily výsledek byla menší pravděpodobnost flipu při mutaci,
+tournament selection, která porážela ruletovou a elitismus taky vedl k lepším výsledkům
+(zkoušel jsem pouze velikost elity 1).
+
 
 ### Nejlepší výsledek
-Jakého nejlepšího výsledku jste dosáhli? S jakým nastavením?
+
+Nejlepší běh měl největší rozdíl 173 s následujícím nastavením (tournament selection):
+
+```python
+POP_SIZE = 100  # population size
+MAX_GEN = 1000  # maximum number of generations
+CX_PROB = 0.8  # crossover probability
+MUT_PROB = 0.5  # mutation probability
+MUT_FLIP_PROB = 0.007  # probability of chaninging value during mutation
+ELITISM = True
+```
 
 ## Druhá část
 
 ### Použité operátory
-Popište, jaké chytré operátory jste implementovali. Pokud jsou to některé ze standardních zmiňovaných na cvičení, stačí zase jen název.
+
+Zkoušel jsem uniform i 2-point crossovery, oba se zdáli horší.
+Zkoušel jsem také kombinaci všech 3 crossoverů, ale ačkoliv fungovalo,
+standardní 1-point byl nejlepší.
+
+Dále jsem zkusil použít swap mutaci, která byla kupodivu horší než jen flip.
+Nejzajímavější byly greedy mutace, kde obyčejná přesunula náhodný prvek z nejtěžšího
+bucketu do nejlehčího, a greedy swap prohodil náhodné prvky v těchto bucketech.
+
 
 ### Hyperparametry
-Jaké nastavení hyperparametrů jste použili?
+
+Opět jsem použil tournament selection, s mutací greedy_swap jsem dosáhl perfektního
+skóre.
+```python
+POP_SIZE = 100  # population size
+MAX_GEN = 1000  # maximum number of generations
+CX_PROB = 0.8  # crossover probability
+MUT_PROB = 0.2  # mutation probability
+MUT_FLIP_PROB = 0.01  # probability of chaninging value during mutation
+ELITISM = True
+```
 
 ## Závěr pro obě části
 
-Co jste zjistili? Co fungovalo nejlépe a proč? Porovnejte výsledky obou částí (Stačí pár vět.) Nezapomeňte přiložit grafy s průběhem fitness. Obě části můžete porovnat v jednom obrázku (pokud je přehledný).
+Elitismus razantně zlepšuje konvergenci. Tuším že je to náročností problému, a tedy se vyplácí nezahazovat nějaké dobré řešení.
+Tournament selection je lepší než ruletová. Tady se přiznám že nevidím jasný důvod, proč by měla vyhrávat, ale experimenty mluví jasně.
+
+Greedy mutace na plné čáře válcuje bit flip, nebo dokonce i prohození. Předpokládám že je to tím, že je mutace hodně specifická
+pro doménu, a chytře využívá informaci o ní, kterou jednodušší mutace nemají. Zároveň není kompletně náhodná, takže oproti
+obyčejným mutacím v podstatě "podvádí".
 
 ## Použití generativní AI
 
-Uveďte, zda a jak jste při práci na úkolu použili generativní AI (např. ChatGPT, Copilot). Pokud jste ji nepoužili, napište to.
+Použil jsem pouze pro generování krátkých funkcí ("napiš za mě greedy mutaci", "napiš za mě uniform crossover" atd.)

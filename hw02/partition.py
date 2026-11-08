@@ -7,16 +7,16 @@ import utils
 K = 10  # number of bins
 
 POP_SIZE = 100  # population size
-MAX_GEN = 500  # maximum number of generations
+MAX_GEN = 1000  # maximum number of generations
 CX_PROB = 0.8  # crossover probability
 MUT_PROB = 0.2  # mutation probability
-MUT_FLIP_PROB = 0.1  # probability of chaninging value during mutation
-ELITISM = False
+MUT_FLIP_PROB = 0.01  # probability of chaninging value during mutation
+ELITISM = True
 
 
 REPEATS = 10  # number of runs of algorithm (should be at least 10)
 OUT_DIR = "hw02/partition"  # output directory for logs
-EXP_ID = "exponential"  # the ID of this experiment (used to create log names)
+EXP_ID = f"NEW-greedy-{POP_SIZE}-{MAX_GEN}-cross{CX_PROB}-tournament-{"elitism-" if ELITISM else ""}mut{MUT_PROB}-flip{MUT_FLIP_PROB}"  # the ID of this experiment (used to create log names)
 
 
 # reads the input set of values of objects
@@ -119,6 +119,23 @@ def swap_mutate(p, prob):
     return p
 
 
+# swaps a random item from the heaviest bin with a random item from the lightest bin
+def greedy_swap_mutate(p, weights):
+    bw = bin_weights(weights, p)
+    heavy = np.argmax(bw)
+    light = np.argmin(bw)
+    if heavy == light:
+        return p
+    items_in_heavy = [i for i, b in enumerate(p) if b == heavy]
+    items_in_light = [i for i, b in enumerate(p) if b == light]
+    if items_in_heavy and items_in_light:
+        p = list(p)
+        ih = random.choice(items_in_heavy)
+        il = random.choice(items_in_light)
+        p[ih], p[il] = p[il], p[ih]
+    return p
+
+
 # moves a random item from the heaviest bin into the lightest bin
 def greedy_mutate(p, weights):
     bw = bin_weights(weights, p)
@@ -200,8 +217,7 @@ if __name__ == "__main__":
     # use `functool.partial` to create fix some arguments of the functions
     # and create functions with required signatures
     cr_ind = functools.partial(create_ind, ind_len=len(weights))
-    # fit = functools.partial(fitness, weights=weights)
-    fit = functools.partial(exp_fitness, weights=weights)
+    fit = functools.partial(fitness, weights=weights)
     xover = functools.partial(crossover, cross=one_pt_cross, cx_prob=CX_PROB)
     xover1 = functools.partial(crossover, cross=one_pt_cross, cx_prob=CX_PROB)
     xover2 = functools.partial(crossover, cross=two_pt_cross, cx_prob=CX_PROB)
@@ -212,6 +228,7 @@ if __name__ == "__main__":
         # mutate=functools.partial(flip_mutate, prob=MUT_FLIP_PROB, upper=K),
         # mutate=functools.partial(swap_mutate, prob=MUT_FLIP_PROB),
         mutate=functools.partial(greedy_mutate, weights=weights),
+        # mutate=functools.partial(greedy_swap_mutate, weights=weights),
     )
     mut1 = functools.partial(
         mutation,
@@ -258,8 +275,8 @@ if __name__ == "__main__":
             [xover, mut],
             # [xover, mut1, mut2, mut3],
             # [xover1, xover2, xover3, mut],
-            roulette_wheel_selection,
-            # tournament_selection,
+            # roulette_wheel_selection,
+            tournament_selection,
             map_fn=pool.map,
             log=log,
         )
